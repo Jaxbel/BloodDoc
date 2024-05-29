@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from './src/screens/HomeScreen'; // Ajusta la ruta
-import DetailsScreen from './src/screens/DetailsScreen'; // Ajusta la ruta
+import HomeScreen from './src/screens/HomeScreen'; // Ajusta la ruta si es necesario
+import DetailsScreen from './src/screens/DetailsScreen'; // Ajusta la ruta si es necesario
 
 const Stack = createNativeStackNavigator();
 

@@ -3,122 +3,94 @@ import { Text, View, TouchableOpacity, Image, TextInput, StyleSheet, SafeAreaVie
 import { Picker } from '@react-native-picker/picker';
 
 const HomeScreen = ({ navigation }) => {
-    const [name, setName] = useState('');
-    const [age, setAge] = useState('');
-    const [bloodType, setBloodType] = useState('');
-    const [systolic, setSystolic] = useState('');
-    const [diastolic, setDiastolic] = useState('');
-    const [heartRate, setHeartRate] = useState('');
-    const [spo2, setSpo2] = useState('');
+    const [form, setForm] = useState({
+        name: '',
+        age: '',
+        bloodType: '',
+        systolic: '',
+        diastolic: '',
+        heartRate: '',
+        spo2: '',
+        healthResult: '',
+    });
     const [healthResult, setHealthResult] = useState('');
 
+    const handleInputChange = (field, value) => {
+        setForm(prevForm => ({ ...prevForm, [field]: value }));
+    };
+
     const validateInputs = () => {
-        if (name.trim() === '' || age.trim() === '' || bloodType === '' || systolic.trim() === '' || diastolic.trim() === '' || heartRate.trim() === '' || spo2.trim() === '') {
+        const { name, age, bloodType, systolic, diastolic, heartRate, spo2 } = form;
+        if (!name || !age || !bloodType || !systolic || !diastolic || !heartRate || !spo2) {
             setHealthResult("Por favor, complete todos los campos.");
             return false;
         }
+
         const ageInt = parseInt(age);
-        if (isNaN(ageInt) || ageInt <= 0 || ageInt > 120) {
-            setHealthResult("Por favor, ingrese una edad válida.");
-            return false;
-        }
         const systolicInt = parseInt(systolic);
-        if (isNaN(systolicInt) || systolicInt <= 0 || systolicInt > 300) {
-            setHealthResult("Por favor, ingrese una presión sistólica válida.");
-            return false;
-        }
         const diastolicInt = parseInt(diastolic);
-        if (isNaN(diastolicInt) || diastolicInt <= 0 || diastolicInt > 200) {
-            setHealthResult("Por favor, ingrese una presión diastólica válida.");
-            return false;
-        }
         const heartRateInt = parseInt(heartRate);
-        if (isNaN(heartRateInt) || heartRateInt <= 0 || heartRateInt > 200) {
-            setHealthResult("Por favor, ingrese una frecuencia cardíaca válida.");
-            return false;
-        }
         const spo2Int = parseInt(spo2);
-        if (isNaN(spo2Int) || spo2Int < 0 || spo2Int > 100) {
-            setHealthResult("Por favor, ingrese un nivel de SpO2 válido.");
+
+        if (isNaN(ageInt) || ageInt <= 0 || ageInt > 120 ||
+            isNaN(systolicInt) || systolicInt <= 0 || systolicInt > 300 ||
+            isNaN(diastolicInt) || diastolicInt <= 0 || diastolicInt > 200 ||
+            isNaN(heartRateInt) || heartRateInt <= 0 || heartRateInt > 200 ||
+            isNaN(spo2Int) || spo2Int < 0 || spo2Int > 100) {
+            setHealthResult("Por favor, ingrese valores válidos.");
             return false;
         }
+
         return true;
     };
 
     const calculateHealth = () => {
+        const { age, heartRate } = form;
         const ageInt = parseInt(age);
-        const systolicInt = parseInt(systolic);
-        const diastolicInt = parseInt(diastolic);
         const heartRateInt = parseInt(heartRate);
-        const spo2Int = parseInt(spo2);
 
         let healthResult = "";
 
-        // Calculate health based on age and vital signs
         if (ageInt <= 18) {
-            if (heartRateInt < 70) {
-                healthResult = "Pulso Bajo";
-            } else if (heartRateInt <= 100) {
-                healthResult = "Pulso Normal";
-            } else {
-                healthResult = "Pulso Alto";
-            }
+            healthResult = heartRateInt < 70 ? "Pulso Bajo" : heartRateInt <= 100 ? "Pulso Normal" : "Pulso Alto";
         } else if (ageInt <= 65) {
-            if (heartRateInt < 70) {
-                healthResult = "Pulso Bajo";
-            } else if (heartRateInt <= 80) {
-                healthResult = "Pulso Normal";
-            } else {
-                healthResult = "Pulso Alto";
-            }
+            healthResult = heartRateInt < 70 ? "Pulso Bajo" : heartRateInt <= 80 ? "Pulso Normal" : "Pulso Alto";
         } else {
-            if (heartRateInt < 60) {
-                healthResult = "Pulso Bajo";
-            } else if (heartRateInt <= 100) {
-                healthResult = "Pulso Normal";
-            } else {
-                healthResult = "Pulso Alto";
-            }
+            healthResult = heartRateInt < 60 ? "Pulso Bajo" : heartRateInt <= 100 ? "Pulso Normal" : "Pulso Alto";
         }
 
-        // Check for healthy range
-        if (
-            (ageInt <= 18 && (heartRateInt >= 60 && heartRateInt <= 120)) ||
-            (ageInt <= 65 && (heartRateInt >= 60 && heartRateInt <= 85)) ||
-            (ageInt > 65 && (heartRateInt >= 60 && heartRateInt <= 100))
-        ) {
-            setHealthResult("Persona Saludable");
-        } else {
-            setHealthResult("Usted no cumple con los estándares de salud.");
-        }
+        setHealthResult(healthResult);
+        return healthResult;
     };
 
     const handleSubmit = () => {
         if (!validateInputs()) return;
-        calculateHealth();
+        const healthResult = calculateHealth();
+        setForm(prevForm => ({ ...prevForm, healthResult }));
+        navigation.navigate('Details', { patientData: { ...form, healthResult } });
     };
 
     return (
         <SafeAreaView style={styles.container}>
             <Text style={styles.heading}>Ingreso de Paciente</Text>
-            <Image source={require('assets/blood-drop.png')} style={styles.image} />
+            <Image source={require('../../assets/blood-drop.png')} style={styles.image} />
             <TextInput
                 style={styles.input}
                 placeholder="Nombre"
-                onChangeText={setName}
-                value={name}
+                onChangeText={value => handleInputChange('name', value)}
+                value={form.name}
             />
             <TextInput
                 style={styles.input}
                 placeholder="Edad"
-                onChangeText={setAge}
-                value={age}
+                onChangeText={value => handleInputChange('age', value)}
+                value={form.age}
                 keyboardType="numeric"
             />
             <Picker
                 style={styles.input}
-                selectedValue={bloodType}
-                onValueChange={(itemValue, itemIndex) => setBloodType(itemValue)}
+                selectedValue={form.bloodType}
+                onValueChange={value => handleInputChange('bloodType', value)}
             >
                 <Picker.Item label="Seleccionar Tipo de Sangre" value="" />
                 <Picker.Item label="A+" value="A+" />
@@ -133,35 +105,35 @@ const HomeScreen = ({ navigation }) => {
             <TextInput
                 style={styles.input}
                 placeholder="Presión Sistólica (mmHg)"
-                onChangeText={setSystolic}
-                value={systolic}
+                onChangeText={value => handleInputChange('systolic', value)}
+                value={form.systolic}
                 keyboardType="numeric"
             />
             <TextInput
                 style={styles.input}
                 placeholder="Presión Diastólica (mmHg)"
-                onChangeText={setDiastolic}
-                value={diastolic}
+                onChangeText={value => handleInputChange('diastolic', value)}
+                value={form.diastolic}
                 keyboardType="numeric"
             />
             <TextInput
                 style={styles.input}
                 placeholder="Frecuencia Cardíaca (bpm)"
-                onChangeText={setHeartRate}
-                value={heartRate}
+                onChangeText={value => handleInputChange('heartRate', value)}
+                value={form.heartRate}
                 keyboardType="numeric"
             />
             <TextInput
                 style={styles.input}
                 placeholder="Nivel de SpO2 (%)"
-                onChangeText={setSpo2}
-                value={spo2}
+                onChangeText={value => handleInputChange('spo2', value)}
+                value={form.spo2}
                 keyboardType="numeric"
             />
             <TouchableOpacity style={styles.button} onPress={handleSubmit}>
                 <Text style={styles.buttonText}>Guardar Datos</Text>
             </TouchableOpacity>
-            {healthResult !== '' && (
+            {healthResult && (
                 <View style={styles.resultContainer}>
                     <Text style={styles.resultText}>Estado de Salud: {healthResult}</Text>
                 </View>
@@ -181,6 +153,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 20,
+        color: '#b22222',
     },
     image: {
         width: 100,
@@ -189,16 +162,16 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     input: {
-        backgroundColor: '#f4f4f4',
+        backgroundColor: '#ffe6e6',
         height: 40,
-        borderColor: 'gray',
+        borderColor: '#b22222',
         borderWidth: 1,
         marginBottom: 10,
         paddingHorizontal: 10,
         borderRadius: 5,
     },
     button: {
-        backgroundColor: '#007bff',
+        backgroundColor: '#b22222',
         padding: 15,
         borderRadius: 5,
         alignItems: 'center',
@@ -217,6 +190,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         textAlign: 'center',
+        color: '#b22222',
     },
 });
 
